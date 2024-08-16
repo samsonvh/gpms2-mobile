@@ -4,8 +4,13 @@ import { Colors } from "@/constants/Colors";
 import React from "react";
 import { Dimensions, FlatList, ScrollView, View } from "react-native";
 import RequestCard from "./RequestCard";
+import { InspectionRequest } from "@/data/types/InspectionRequest";
 
-const PendingSection = () => {
+type pendingProps = {
+  inspectionRequests: InspectionRequest[];
+};
+
+const PendingSection = ({ inspectionRequests }: pendingProps) => {
   return (
     <Collapsible title="Pending">
       <ScrollView
@@ -17,11 +22,13 @@ const PendingSection = () => {
           paddingHorizontal: 16,
         }}
       >
-        <RequestCard />
-        <RequestCard />
-        <RequestCard />
-        <RequestCard />
-        <RequestCard />
+        {inspectionRequests.map((request) =>
+          request.status === "pending" ? (
+            <RequestCard key={request.id} inspectionRequest={request} />
+          ) : (
+            <></>
+          )
+        )}
       </ScrollView>
     </Collapsible>
   );

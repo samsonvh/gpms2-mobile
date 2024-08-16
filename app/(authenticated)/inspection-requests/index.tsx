@@ -2,6 +2,7 @@ import Header from "@/components/common/layout/header/Header";
 import PendingSection from "@/components/screens/inspection-requests/index/PendingSection";
 import { ThemedView } from "@/components/ThemedView";
 import { Text, View } from "react-native";
+import inspectionRequests from "@/data/mock-data/inspection-requests.json";
 
 export default function Index() {
   return (
@@ -14,7 +15,7 @@ export default function Index() {
       }}
     >
       <Header />
-      <PendingSection />
+      <PendingSection inspectionRequests={inspectionRequests}/>
     </ThemedView>
   );
 }

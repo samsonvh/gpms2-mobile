@@ -1,0 +1,54 @@
+[
+  {
+    "id": "requestId1",
+    "name": "Pending Request 1",
+    "creator": "Samson",
+    "created": "2012-04-23T18:25:43.511Z",
+    "productionPlanId": "planId",
+    "productionPlanCode": "planCode",
+    "productionSeriesId": "seriesId",
+    "productionSeriesCode": "seriesCode",
+    "reviewer": null,
+    "reviewed": null,
+    "status": "pending"
+  },
+  {
+    "id": "requestId2",
+    "name": "Pending Request 2",
+    "creator": "Samson",
+    "created": "2012-04-23T18:25:43.511Z",
+    "productionPlanId": "planId",
+    "productionPlanCode": "planCode",
+    "productionSeriesId": "seriesId",
+    "productionSeriesCode": "seriesCode",
+    "reviewer": null,
+    "reviewed": null,
+    "status": "pending"
+  },
+  {
+    "id": "requestId1",
+    "name": "Approved Request 1",
+    "creator": "Samson",
+    "created": "2012-04-23T18:25:43.511Z",
+    "productionPlanId": "planId",
+    "productionPlanCode": "planCode",
+    "productionSeriesId": "seriesId",
+    "productionSeriesCode": "seriesCode",
+    "reviewer": null,
+    "reviewed": null,
+    "status": "approved"
+  },
+  {
+    "id": "requestId2",
+    "name": "Approved Request 2",
+    "creator": "Samson",
+    "created": "2012-04-23T18:25:43.511Z",
+    "productionPlanId": "planId",
+    "productionPlanCode": "planCode",
+    "productionSeriesId": "seriesId",
+    "productionSeriesCode": "seriesCode",
+    "reviewer": null,
+    "reviewed": null,
+    "status": "approved"
+  }
+]

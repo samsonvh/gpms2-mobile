@@ -1,9 +1,18 @@
-import { Stack } from "expo-router";
+import { Stack, Tabs } from "expo-router";
+import React from "react";
 
-export default function RootLayout() {
+const RootLayout = () => {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(authenticated)" />
+    <Stack>
+      <Stack.Screen name="index" options={{headerShown: false}}/>
+      <Stack.Screen
+        name="camera/[id]"
+        options={{ presentation: "fullScreenModal" }}
+      />
+      <Stack.Screen name="inspection-result/[id]" />
+      <Stack.Screen name="inspection-requests/index" />
     </Stack>
   );
-}
+};
+
+export default RootLayout;

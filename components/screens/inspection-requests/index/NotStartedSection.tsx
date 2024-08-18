@@ -10,11 +10,10 @@ type pendingProps = {
   inspectionRequests: InspectionRequest[];
 };
 
-const PendingSection = ({ inspectionRequests }: pendingProps) => {
+const NotStartedSection = ({ inspectionRequests }: pendingProps) => {
   return (
-    <Collapsible title="Pending">
+    <Collapsible title="Not started">
       <ScrollView
-        horizontal
         style={{
           maxHeight: 400,
           width: Dimensions.get("screen").width - 40,
@@ -24,10 +23,8 @@ const PendingSection = ({ inspectionRequests }: pendingProps) => {
         }}
       >
         {inspectionRequests.map((request) =>
-          request.status === "pending" ? (
-            <View style={{width: 300}}>
-              <RequestCard key={request.id} inspectionRequest={request} />
-            </View>
+          request.status === "approved" ? (
+            <RequestCard key={request.id} inspectionRequest={request} />
           ) : null
         )}
       </ScrollView>
@@ -35,4 +32,4 @@ const PendingSection = ({ inspectionRequests }: pendingProps) => {
   );
 };
 
-export default PendingSection;
+export default NotStartedSection;

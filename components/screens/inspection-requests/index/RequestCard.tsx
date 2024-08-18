@@ -73,30 +73,48 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
                 elevation: 20,
               }}
             >
-              <Text>APPROVE</Text>
+              <Text>Start</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View></View>
         )}
       </View>
-      <View style={{ marginTop: 8}}>
-        {/* <View> */}
-          <ThemedText style={{ fontSize: 12 }}>
-            Production series: {inspectionRequest?.productionSeriesCode}
-          </ThemedText>
-          <ThemedText style={{ fontSize: 12 }}>
-            Production plan: {inspectionRequest?.productionPlanCode}
-          </ThemedText>
-          {/* </View>
-        <View style={{ alignItems: "flex-end" }}> */}
-          <ThemedText style={{ fontSize: 12 }}>
-            Creator: {inspectionRequest?.creator}
-          </ThemedText>
-          <ThemedText style={{ fontSize: 12 }}>
-            Created: {inspectionRequest?.created.toLocaleString()}
-          </ThemedText>
-        {/* </View> */}
+      <View style={{ marginTop: 8 }}>
+        <ThemedText style={{ fontSize: 12 }}>
+          Production series: {inspectionRequest?.productionSeriesCode}
+        </ThemedText>
+        <ThemedText style={{ fontSize: 12 }}>
+          Production plan: {inspectionRequest?.productionPlanCode}
+        </ThemedText>
+        <ThemedText style={{ fontSize: 12 }}>
+          Creator: {inspectionRequest?.creator}
+        </ThemedText>
+        <ThemedText style={{ fontSize: 12 }}>
+          Created: {inspectionRequest?.created.toLocaleString()}
+        </ThemedText>
+        {inspectionRequest?.status === "approved" ||
+        inspectionRequest?.status === "in progress" ||
+        inspectionRequest?.status === "declined" ? (
+          <>
+            <ThemedText style={{ fontSize: 12 }}>
+              Reviewer: {inspectionRequest?.reviewer}
+            </ThemedText>
+            <ThemedText style={{ fontSize: 12 }}>
+              Reviewed: {inspectionRequest?.reviewed!.toLocaleString()}
+            </ThemedText>
+          </>
+        ) : null}
+        {inspectionRequest?.status === "in progress" ? (
+          <>
+            <ThemedText style={{ fontSize: 12 }}>
+              Inspector: {inspectionRequest?.inspector}
+            </ThemedText>
+            <ThemedText style={{ fontSize: 12 }}>
+              Inspected: {inspectionRequest?.inspected!.toLocaleString()}
+            </ThemedText>
+          </>
+        ) : null}
       </View>
     </ThemedView>
   );

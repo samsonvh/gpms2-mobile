@@ -2,10 +2,9 @@ import React, { memo } from "react";
 import { ThemedView } from "../ThemedView";
 import { ThemedText } from "../ThemedText";
 import { Pressable, Text, View } from "react-native";
-import { Link } from "expo-router";
 import { InspectionRequest } from "@/data/types/InspectionRequest";
-import { Href } from "expo-router";
 import { Colors } from "@/constants/Colors";
+import { Href, Link } from "expo-router";
 
 type cardProps = {
   inspectionRequest: InspectionRequest;
@@ -17,7 +16,15 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
   return (
     <ThemedView
       darkColor={Colors.dark.lighterBackground}
-      style={{ padding: 20, elevation: 20, shadowRadius: 4, shadowOpacity: 0.2, borderRadius: 8 }}
+      style={{
+        marginBottom: 20,
+        marginHorizontal: 8,
+        padding: 20,
+        elevation: 20,
+        shadowRadius: 4,
+        shadowOpacity: 0.2,
+        borderRadius: 8,
+      }}
     >
       <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
         <ThemedText numberOfLines={1} style={{ flexGrow: 1, flexShrink: 1 }}>
@@ -27,13 +34,14 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
           <Link
             href={("/camera/" + inspectionRequest.id) as Href}
             style={{
+              marginLeft: 12,
               paddingHorizontal: 12,
               paddingVertical: 8,
               backgroundColor: "#ccc",
               borderRadius: 100,
             }}
           >
-            <Text>Start Inspection</Text>
+            <Text numberOfLines={1}>Start Inspection</Text>
           </Link>
         )}
         {requestStatus === "pending" && (
@@ -55,6 +63,8 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
                 borderWidth: 1,
                 borderColor: "#fff",
                 borderRadius: 100,
+                shadowRadius: 4,
+                shadowOpacity: 0.2
               }}
             >
               <ThemedText>approve</ThemedText>

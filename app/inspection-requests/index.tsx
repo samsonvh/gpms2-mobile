@@ -23,6 +23,7 @@ const Index = () => {
     >
       <Header />
       <FlatList
+        style={{paddingVertical: 20}}
         initialNumToRender={5}
         maxToRenderPerBatch={5}
         data={inspectionRequests}

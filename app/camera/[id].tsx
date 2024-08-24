@@ -36,7 +36,7 @@ const CameraScreen = () => {
 
   const onBarcodeScanned = (item: BarcodeScanningResult) => {
     if (item.data === id) {
-      router.replace("/inspection-result/[id]" as Href);
+      router.replace("/inspection-results/" + id as Href);
     } else {
       router.back();
     }

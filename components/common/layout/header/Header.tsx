@@ -2,28 +2,33 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import React from "react";
-import { Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 const Header = () => {
+  const [token, setToken] = useState<string>();
+
+  const getToken = async () => {
+    const oldToken = await AsyncStorage.getItem("token");
+    if (oldToken) {
+      setToken(oldToken);
+    }
+  };
+
+  useEffect(() => {
+    getToken();
+  }, []);
 
   return (
-    <ThemedView
-			darkColor={Colors.dark.lighterBackground}
-      style={{
-        elevation: 20,
-        paddingVertical: 20,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        // shadowColor: "#fff",
-        shadowOffset: { height: 2, width: 0 },
-        shadowRadius: 20,
-        shadowOpacity: 0.05,
-      }}
-    >
-      <ThemedText>Test</ThemedText>
+    <ThemedView darkColor={Colors.dark.lighterBackground} style={style.header}>
+      <ThemedText numberOfLines={1}>{token}</ThemedText>
     </ThemedView>
   );
 };
 
 export default Header;
+
+const style = StyleSheet.create({
+  header: {},
+});

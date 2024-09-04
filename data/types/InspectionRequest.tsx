@@ -23,3 +23,14 @@ export type InspectionRequest = {
     | "finished"
     | "canceled";
 };
+
+export type InspectionRequestListingItem = {
+  id: string,
+  name: string,
+  code: string,
+  productSpecificationId: string,
+  productionSeriesId: string,
+  productionSeriesCode: string,
+  createdDate: Date | string,
+  status: string,
+}

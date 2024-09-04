@@ -1,119 +1,136 @@
-import React, { memo } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { ThemedView } from "../ThemedView";
 import { ThemedText } from "../ThemedText";
-import { Pressable, Text, View } from "react-native";
-import { InspectionRequest } from "@/data/types/InspectionRequest";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  InspectionRequest,
+  InspectionRequestListingItem,
+} from "@/data/types/InspectionRequest";
 import { Colors } from "@/constants/Colors";
-import { Href, Link } from "expo-router";
+import { Href, Link, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type cardProps = {
-  inspectionRequest: InspectionRequest;
+  inspectionRequest: InspectionRequestListingItem;
 };
 
 const RequestCard = ({ inspectionRequest }: cardProps) => {
+  const [token, setToken] = useState<string>();
+  const router = useRouter();
+
+  const getToken = async () => {
+    const token = await AsyncStorage.getItem("token");
+    if (token) setToken(token);
+  };
+
+  useEffect(() => {
+    getToken();
+  }, []);
+
   const requestStatus = inspectionRequest.status;
+  if (requestStatus == "Approved") {
+    console.log(inspectionRequest.id);
+  }
+
+  const changeStatus = async (status: string) => {
+    let isSucceed = false;
+
+    await fetch(
+      `${process.env.EXPO_PUBLIC_API_SERVER}/api/v1/inspection-requests/` +
+        inspectionRequest.id +
+        "?status=" +
+        status,
+      {
+        method: "PATCH",
+        headers: {
+          authorization: "Bearer " + token,
+          "content-type": "application/json",
+          accept: "application/json",
+        },
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => (isSucceed = data));
+
+    return isSucceed;
+  };
 
   return (
-    <ThemedView
-      darkColor={Colors.dark.lighterBackground}
-      style={{
-        marginBottom: 20,
-        marginHorizontal: 8,
-        padding: 20,
-        elevation: 20,
-        shadowRadius: 4,
-        shadowOpacity: 0.2,
-        borderRadius: 8,
-      }}
-    >
-      <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
-        <ThemedText numberOfLines={1} style={{ flexGrow: 1, flexShrink: 1 }}>
-          {inspectionRequest.name}
-        </ThemedText>
-        {requestStatus === "approved" && (
-          <Link
-            href={("/camera/" + inspectionRequest.id) as Href}
-            style={{
-              marginLeft: 12,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-              backgroundColor: "#ccc",
-              borderRadius: 100,
+    <ThemedView darkColor={Colors.dark.lighterBackground}>
+      <View style={style.cardHeader}>
+        <ThemedText>{inspectionRequest.name}</ThemedText>
+        {requestStatus == "Pending" && (
+          <View style={style.cardActionContainer}>
+            <Pressable
+              onPress={async () => {
+                let a = await changeStatus("Declined");
+                a && router.replace("/inspection-requests");
+              }}
+              style={style.cardActionButton}
+            >
+              <ThemedText>Decline</ThemedText>
+            </Pressable>
+            <Pressable
+              onPress={async () => {
+                let a = await changeStatus("Approved");
+                a && router.replace("/inspection-requests");
+              }}
+              style={style.cardActionButton}
+            >
+              <ThemedText>Approve</ThemedText>
+            </Pressable>
+          </View>
+        )}
+        {requestStatus == "Approved" && (
+          <Pressable
+            onPress={() => {
+              router.push({
+                pathname: `/camera/[id]`,
+                params: {
+                  id: inspectionRequest.id,
+                  seriesId: inspectionRequest.productionSeriesId,
+                  specificationId: inspectionRequest.productSpecificationId,
+                },
+              });
             }}
+            style={style.cardActionButton}
           >
-            <Text numberOfLines={1}>Start Inspection</Text>
-          </Link>
+            <ThemedText>Inspect</ThemedText>
+          </Pressable>
         )}
-        {requestStatus === "pending" && (
-          <>
-            <Pressable
-              style={{
-                marginLeft: 12,
-                marginRight: 8,
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-              }}
-            >
-              <ThemedText>decline</ThemedText>
-            </Pressable>
-            <Pressable
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                borderWidth: 1,
-                borderColor: "#fff",
-                borderRadius: 100,
-                shadowRadius: 4,
-                shadowOpacity: 0.2
-              }}
-            >
-              <ThemedText>approve</ThemedText>
-            </Pressable>
-          </>
-        )}
-        {(requestStatus === "declined" ||
-          requestStatus === "canceled" ||
-          requestStatus === "in progress" ||
-          requestStatus === "finished") && (
+        {(requestStatus == "Declined" || requestStatus == "Passed" || requestStatus == "Failed") && (
           <ThemedText>{requestStatus}</ThemedText>
         )}
       </View>
-      <View style={{ marginTop: 12 }}>
-        <ThemedText style={{ fontSize: 12 }}>
-          Production plan: {inspectionRequest.productionPlanCode}
+      <View>
+        <ThemedText>
+          Series: {inspectionRequest.productionSeriesCode}
         </ThemedText>
-        <ThemedText style={{ fontSize: 12 }}>
-          Production series: {inspectionRequest.productionSeriesCode}
+        <ThemedText>
+          CreatedDate: {inspectionRequest.createdDate.toLocaleString()}
         </ThemedText>
-        <ThemedText style={{ fontSize: 12 }}>
-          Creator: {inspectionRequest.creator}
-        </ThemedText>
-        <ThemedText style={{ fontSize: 12 }}>
-          Created: {inspectionRequest.created.toLocaleString()}
-        </ThemedText>
-        {requestStatus !== "pending" && requestStatus !== "canceled" && (
-          <>
-            <ThemedText style={{ fontSize: 12 }}>
-              Reviewer: {inspectionRequest.reviewer}
-            </ThemedText>
-            <ThemedText style={{ fontSize: 12 }}>
-              Reviewed: {inspectionRequest.reviewed!.toLocaleString()}
-            </ThemedText>
-          </>
-        )}
-        {(requestStatus === "finished" || requestStatus === "in progress") && (
-          <>
-            <ThemedText style={{ fontSize: 12 }}>
-              Inspector: {inspectionRequest.inspector}
-            </ThemedText>
-            <ThemedText style={{ fontSize: 12 }}>
-              Inspected: {inspectionRequest.inspected!.toLocaleString()}
-            </ThemedText>
-          </>
-        )}
       </View>
     </ThemedView>
   );
 };
 
 export default memo(RequestCard);
+
+const style = StyleSheet.create({
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  cardActionContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  cardActionButton: {
+    backgroundColor: "#ccc",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 4,
+  },
+});

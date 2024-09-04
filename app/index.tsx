@@ -1,13 +1,15 @@
 import RequestCard from "@/components/common/RequestCard";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Link, router } from "expo-router";
-import React, { useCallback } from "react";
+import { Link, Redirect, router, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useCallback, useState } from "react";
 import {
   FlatList,
   ListRenderItem,
   ListRenderItemInfo,
   Pressable,
+  StyleSheet,
   Text,
   TextInput,
   View,
@@ -20,57 +22,66 @@ const Index = () => {
     return <RequestCard key={item.index} inspectionRequest={item.item} />;
   }, []);
 
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const router = useRouter();
+
+  const loginHandler = async () => {
+    await fetch(
+      `${process.env.EXPO_PUBLIC_API_SERVER}/api/v1/auth/sign-in`,
+      {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => AsyncStorage.setItem("token", data.accessToken))
+      .finally(
+        async () =>
+          (await AsyncStorage.getItem("token")) &&
+          router.replace("/inspection-requests")
+      )
+      .catch((error) => console.log(error));
+  };
+
   return (
     <ThemedView
       style={{ flex: 1, justifyContent: "center", paddingHorizontal: 40 }}
     >
-      <ThemedView
-        darkColor={Colors.dark.lighterBackground}
-        style={{ padding: 40, borderRadius: 8 }}
-      >
-        <View>
-          <ThemedText>Username:</ThemedText>
-          <TextInput
-            style={{
-              marginTop: 8,
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderWidth: 1,
-              borderColor: "#fff",
-              color: "#fff",
-            }}
-          />
-        </View>
-        <View style={{ marginTop: 12 }}>
-          <ThemedText>Password:</ThemedText>
-          <TextInput
-            style={{
-              marginTop: 8,
-              marginBottom: 16,
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderWidth: 1,
-              borderColor: "#fff",
-              color: "#fff",
-            }}
-            textContentType="newPassword"
-          />
-        </View>
-        <Pressable
-          onPress={() => router.replace("/inspection-requests")}
-          style={{
-            backgroundColor: "#fff",
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-          }}
-        >
-          <Text style={{ textAlign: "center", fontSize: 20, borderRadius: 8 }}>
-            Login
-          </Text>
-        </Pressable>
-      </ThemedView>
+      <ThemedText>Email:</ThemedText>
+      <TextInput
+        style={style.textInput}
+        inputMode="email"
+        textContentType="emailAddress"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <ThemedText>Password:</ThemedText>
+      <TextInput
+        style={style.textInput}
+        inputMode="text"
+        textContentType="password"
+        value={password}
+        onChangeText={setPassword}
+      />
+      <Pressable onPress={async () => loginHandler()} style={style.button}>
+        <ThemedText>Login</ThemedText>
+      </Pressable>
     </ThemedView>
   );
 };
 
 export default Index;
+
+const style = StyleSheet.create({
+  textInput: {
+    borderWidth: 1,
+  },
+  button: {
+    
+  }
+});

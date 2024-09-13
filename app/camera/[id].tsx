@@ -5,12 +5,17 @@ import {
   CameraView,
   useCameraPermissions,
 } from "expo-camera";
-import { Href, router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import {
+  Href,
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+} from "expo-router";
 import React, { memo, useCallback, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 const CameraScreen = () => {
-  const { id, seriesId, specificationId} = useLocalSearchParams();
+  const { id } = useLocalSearchParams();
   const [permission, requestPermission] = useCameraPermissions();
   const [isFocused, setIsFocused] = useState(false);
 
@@ -36,7 +41,7 @@ const CameraScreen = () => {
 
   const onBarcodeScanned = (item: BarcodeScanningResult) => {
     if (item.data === id) {
-      router.replace({pathname: "/inspection-results/[id]", params: {id, seriesId, specificationId}});
+      router.replace({ pathname: "/inspection-results/[id]", params: { id } });
     } else {
       router.back();
     }

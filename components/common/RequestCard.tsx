@@ -2,13 +2,10 @@ import React, { memo, useEffect, useState } from "react";
 import { ThemedView } from "../ThemedView";
 import { ThemedText } from "../ThemedText";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import {
-  InspectionRequest,
-  InspectionRequestListingItem,
-} from "@/data/types/InspectionRequest";
 import { Colors } from "@/constants/Colors";
 import { Href, Link, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { InspectionRequestListingItem } from "@/data/types/inspection-request";
 
 type cardProps = {
   inspectionRequest: InspectionRequestListingItem;
@@ -56,59 +53,70 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
   };
 
   return (
-    <ThemedView darkColor={Colors.dark.lighterBackground}>
-      <View style={style.cardHeader}>
-        <ThemedText>{inspectionRequest.name}</ThemedText>
-        {requestStatus == "Pending" && (
-          <View style={style.cardActionContainer}>
-            <Pressable
-              onPress={async () => {
-                let a = await changeStatus("Declined");
-                a && router.replace("/inspection-requests");
-              }}
-              style={style.cardActionButton}
-            >
+    <ThemedView>
+      <View>
+        <ThemedText numberOfLines={1} style={style.title}>
+          {inspectionRequest.name}
+        </ThemedText>
+      </View>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <View style={{ flexDirection: "row" }}>
+          <View
+            style={{
+              borderWidth: 1,
+              paddingHorizontal: 8,
+              alignItems: "center",
+            }}
+          >
+            <ThemedText>Required</ThemedText>
+            <ThemedText>{inspectionRequest.requiredQuantity}</ThemedText>
+          </View>
+          <View
+            style={{
+              borderWidth: 1,
+              paddingHorizontal: 8,
+              alignItems: "center",
+            }}
+          >
+            <ThemedText>Failed</ThemedText>
+            <ThemedText>{inspectionRequest.failedQuantity}</ThemedText>
+          </View>
+          <View
+            style={{
+              borderWidth: 1,
+              paddingHorizontal: 8,
+              alignItems: "center",
+            }}
+          >
+            <ThemedText>Passed</ThemedText>
+            <ThemedText>{inspectionRequest.passedQuantity}</ThemedText>
+          </View>
+        </View>
+      </View>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <ThemedText>{inspectionRequest.createdDate.toString()}</ThemedText>
+        {inspectionRequest.status === "Pending" && (
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Pressable>
               <ThemedText>Decline</ThemedText>
             </Pressable>
-            <Pressable
-              onPress={async () => {
-                let a = await changeStatus("Approved");
-                a && router.replace("/inspection-requests");
-              }}
-              style={style.cardActionButton}
-            >
+            <Pressable>
               <ThemedText>Approve</ThemedText>
             </Pressable>
           </View>
         )}
-        {requestStatus == "Approved" && (
-          <Pressable
-            onPress={() => {
-              router.push({
-                pathname: `/camera/[id]`,
-                params: {
-                  id: inspectionRequest.id,
-                  seriesId: inspectionRequest.productionSeriesId,
-                  specificationId: inspectionRequest.productSpecificationId,
-                },
-              });
-            }}
-            style={style.cardActionButton}
-          >
+        {inspectionRequest.status === "Approved" && (
+          <Pressable onPress={() => {router.push("/camera/" + inspectionRequest.id as Href)}}>
             <ThemedText>Inspect</ThemedText>
           </Pressable>
         )}
-        {(requestStatus == "Declined" || requestStatus == "Passed" || requestStatus == "Failed") && (
-          <ThemedText>{requestStatus}</ThemedText>
+        {inspectionRequest.status === "Declined" ||
+          (inspectionRequest.status === "Failed" && (
+            <ThemedText>{inspectionRequest.status}</ThemedText>
+          ))}
+        {inspectionRequest.status === "Passed" && (
+          <ThemedText>{inspectionRequest.status}</ThemedText>
         )}
-      </View>
-      <View>
-        <ThemedText>
-          Series: {inspectionRequest.productionSeriesCode}
-        </ThemedText>
-        <ThemedText>
-          CreatedDate: {inspectionRequest.createdDate.toLocaleString()}
-        </ThemedText>
       </View>
     </ThemedView>
   );
@@ -117,6 +125,9 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
 export default memo(RequestCard);
 
 const style = StyleSheet.create({
+  title: {
+    fontWeight: 700,
+  },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",

@@ -3,7 +3,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Link, Redirect, router, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   FlatList,
   ListRenderItem,
@@ -22,24 +22,26 @@ const Index = () => {
     return <RequestCard key={item.index} inspectionRequest={item.item} />;
   }, []);
 
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+  const [email, setEmail] = useState<string>("inspectionmanager@gmail.com");
+  const [password, setPassword] = useState<string>("inspectionmanager");
   const router = useRouter();
 
   const loginHandler = async () => {
-    await fetch(
-      `${process.env.EXPO_PUBLIC_API_SERVER}/api/v1/auth/sign-in`,
-      {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      }
-    )
+    await fetch(`${process.env.EXPO_PUBLIC_API_SERVER}/api/v1/auth/sign-in`, {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    })
       .then((response) => response.json())
-      .then((data) => AsyncStorage.setItem("token", data.accessToken))
+      .then((data) => {
+        AsyncStorage.setItem("token", data.accessToken);
+        console.log(data.accessToken)
+        AsyncStorage.setItem("userName", data.account.fullName);
+        AsyncStorage.setItem("userRole", data.account.role);
+      })
       .finally(
         async () =>
           (await AsyncStorage.getItem("token")) &&
@@ -47,6 +49,14 @@ const Index = () => {
       )
       .catch((error) => console.log(error));
   };
+
+  const checkedLoggedIn = async () => {
+    await AsyncStorage.getItem("token") && router.replace("/inspection-requests");
+  }
+
+  useEffect(() => {
+    checkedLoggedIn();
+  }, [])
 
   return (
     <ThemedView
@@ -81,7 +91,5 @@ const style = StyleSheet.create({
   textInput: {
     borderWidth: 1,
   },
-  button: {
-    
-  }
+  button: {},
 });

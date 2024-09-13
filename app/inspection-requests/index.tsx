@@ -7,17 +7,20 @@ import {
   FlatList,
   ListRenderItem,
   ListRenderItemInfo,
+  Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import inspectionRequests from "@/data/mock-data/inspection-requests.json";
 import Header from "@/components/common/layout/header/Header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { InspectionRequestListingItem } from "@/data/types/InspectionRequest";
+import { InspectionRequestFilterModel, InspectionRequestListingItem } from "@/data/types/inspection-request";
 
 const Index = () => {
   const [token, setToken] = useState<string>();
+  const [userRole, setUserRole] = useState<string>();
   const [requests, setRequests] = useState<InspectionRequestListingItem[]>();
 
   const renderItem = useCallback(
@@ -28,19 +31,41 @@ const Index = () => {
   );
 
   const getToken = async () => {
-    const token = await AsyncStorage.getItem("token");
-    if (token) setToken(token);
+    const atoken = await AsyncStorage.getItem("token");
+    const role = await AsyncStorage.getItem("userRole");
+    if (atoken && role) {
+      setToken(token);
+      setUserRole(role);
+    }
   };
 
   const getRequests = async () => {
-    await fetch(`${process.env.EXPO_PUBLIC_API_SERVER}/api/v1/inspection-requests/filter`, {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
+    const filter: InspectionRequestFilterModel = {
+      isAscending: false,
+      orderBy: "CreatedDate",
+      pagination: {
+        pageIndex: 0,
+        pageSize: 100,
       },
-    })
-      .then((request) => {console.log(request); return request.json()})
+      searchString: "",
+      status: "",
+    };
+
+    await fetch(
+      `${process.env.EXPO_PUBLIC_API_SERVER}/api/v1/inspection-requests/filter`,
+      {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(filter),
+      }
+    )
+      .then((request) => {
+        console.log(request);
+        return request.json();
+      })
       .then((data) => {
         setRequests(data.data);
         console.log(data.data);
@@ -54,16 +79,29 @@ const Index = () => {
   }, []);
 
   return (
-    <ThemedView>
+    <ThemedView style={{height: "100%"}}>
       <Header />
-      <FlatList
-        style={style.list}
-        initialNumToRender={5}
-        maxToRenderPerBatch={5}
-        data={requests}
-        renderItem={renderItem}
-        windowSize={5}
-      />
+      <View style={style.searchBarContainer}>
+        <TextInput
+          style={style.searchInput}
+          placeholder="Search by name or series code"
+        />
+      </View>
+      <View style={style.statusFilterContainer}>
+        <Pressable style={style.statusFilterButton}>
+          <Text>All</Text>
+        </Pressable>
+      </View>
+      <View style={style.list}>
+        <FlatList
+          style={{maxHeight: "30%"}}
+          initialNumToRender={5}
+          maxToRenderPerBatch={5}
+          data={requests}
+          renderItem={renderItem}
+          windowSize={5}
+        />
+      </View>
     </ThemedView>
   );
 };
@@ -72,5 +110,25 @@ export default Index;
 
 const style = StyleSheet.create({
   header: {},
-  list: {},
+  list: {
+    padding: 12,
+    flexGrow: 1,
+    
+  },
+  searchBarContainer: {
+    padding: 12,
+  },
+  searchInput: {
+    borderWidth: 1,
+    padding: 8,
+    borderRadius: 4,
+  },
+  statusFilterContainer: {
+    padding: 8,
+  },
+  statusFilterButton: {
+    borderWidth: 1,
+    width: "15%",
+    aspectRatio: 1,
+  },
 });

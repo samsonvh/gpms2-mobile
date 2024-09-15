@@ -21,10 +21,13 @@ import {
   InspectionRequestFilterModel,
   InspectionRequestListingItem,
 } from "@/data/types/inspection-request";
+import { SearchBar } from "react-native-screens";
+import SearchBox from "@/components/common/SearchBox";
 
 const Index = () => {
   const [token, setToken] = useState<string>();
   const [userRole, setUserRole] = useState<string>();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [requests, setRequests] = useState<InspectionRequestListingItem[]>();
 
   const renderItem = useCallback(
@@ -62,7 +65,7 @@ const Index = () => {
       {
         method: "POST",
         headers: {
-          "Authorization": "Bearer " + a,
+          Authorization: "Bearer " + a,
           accept: "application/json",
           "content-type": "application/json",
         },
@@ -79,6 +82,11 @@ const Index = () => {
       .catch((error) => console.log(error));
   };
 
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await getRequests().then(() => setIsRefreshing(false));
+  }
+
   useEffect(() => {
     getToken();
     getRequests();
@@ -87,24 +95,24 @@ const Index = () => {
   return (
     <ThemedView style={style.screen}>
       <Header />
-      <View style={style.searchBarContainer}>
-        <TextInput
-          style={style.searchInput}
-          placeholder="Search by name or series code"
-        />
-      </View>
-      <View style={style.list}>
-        <FlatList
-          ItemSeparatorComponent={() => (
-            <ThemedView style={{ padding: 8 }}></ThemedView>
-          )}
-          style={{ maxHeight: 400 }}
-          initialNumToRender={5}
-          maxToRenderPerBatch={5}
-          data={requests}
-          renderItem={renderItem}
-          windowSize={5}
-        />
+      <SearchBox />
+      <View style={{ flexGrow: 1 }}>
+        <Text style={style.title}>Approved inspection requests:</Text>
+        <View style={style.listContainer}>
+          <FlatList
+            // ItemSeparatorComponent={() => (
+            //   <ThemedView style={{ padding: 8 }}></ThemedView>
+            // )}
+            style={style.list}
+            initialNumToRender={5}
+            maxToRenderPerBatch={5}
+            data={requests}
+            renderItem={renderItem}
+            windowSize={5}
+            onRefresh={onRefresh}
+            refreshing={isRefreshing}
+          />
+        </View>
       </View>
     </ThemedView>
   );
@@ -116,29 +124,23 @@ const style = StyleSheet.create({
   screen: {
     height: "100%",
     paddingTop: 40,
-    paddingBottom: 60,
+    paddingBottom: 20,
+    gap: 12,
   },
-  header: {},
-  list: {
-    padding: 12,
+  title: {
+    fontSize: 20,
+    fontWeight: "600",
+    marginHorizontal: 20,
+  },
+  listContainer: {
     flexGrow: 1,
+    paddingHorizontal: 12,
+    paddingTop: 0,
+    paddingBottom: 12,
+    overflow: "hidden",
   },
-  searchBarContainer: {
-    padding: 12,
-  },
-  searchInput: {
-    borderWidth: 1,
-    padding: 8,
-    borderRadius: 4,
-  },
-  statusFilterContainer: {
-    width: "100%",
-    padding: 8,
-  },
-  statusFilterButton: {
-    borderWidth: 1,
-    width: 50,
-    height: 50,
-    aspectRatio: 1,
+  list: {
+    height: 100,
+    flexGrow: 1,
   },
 });

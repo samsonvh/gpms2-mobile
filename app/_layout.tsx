@@ -10,7 +10,7 @@ const RootLayout = () => {
         options={{ presentation: "fullScreenModal" }}
       />
       <Stack.Screen name="inspection-results/[id]" />
-      <Stack.Screen name="inspection-requests/index" />
+      <Stack.Screen name="inspection-requests" />
     </Stack>
   );
 };

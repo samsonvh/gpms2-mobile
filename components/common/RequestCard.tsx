@@ -15,6 +15,8 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
   const [token, setToken] = useState<string>();
   const router = useRouter();
 
+  const date = new Date(inspectionRequest.createdDate);
+
   const getToken = async () => {
     const token = await AsyncStorage.getItem("token");
     if (token) setToken(token);
@@ -54,12 +56,58 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
 
   return (
     <ThemedView style={style.card}>
-      <View>
+      <View style={style.cardHeader}>
         <ThemedText numberOfLines={1} style={style.title}>
           {inspectionRequest.name}
         </ThemedText>
       </View>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+      <View style={style.cardContent}>
+        <View style={style.quantityContainer}>
+          <View style={style.quantityBox}>
+            <Text style={style.quantityBoxLabel}>Required:</Text>
+            <Text style={style.quantityNumber}>
+              {inspectionRequest.requiredQuantity}
+            </Text>
+          </View>
+          <View style={style.quantityBox}>
+            <Text style={style.quantityBoxLabel}>Failed:</Text>
+            <Text style={style.quantityNumber}>
+              {inspectionRequest.failedQuantity}
+            </Text>
+          </View>
+          <View style={style.quantityBox}>
+            <Text style={style.quantityBoxLabel}>Passed:</Text>
+            <Text style={style.quantityNumber}>
+              {inspectionRequest.passedQuantity}
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View style={style.cardFooter}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <View style={{ flexDirection: "row" }}>
+            <Text style={style.createdLabel}>Created at </Text>
+            <Text style={style.createdText}>{date.toLocaleString()}</Text>
+          </View>
+          <Pressable
+            style={style.inspectButton}
+            onPress={() =>
+              router.push(("/camera/" + inspectionRequest.id) as Href)
+            }
+          >
+            <Text style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>
+              Inspect
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+      {/* <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <View style={{ flexDirection: "row" }}>
           <View
             style={{
@@ -93,8 +141,16 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
           </View>
         </View>
       </View>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" , alignItems: "center"}}>
-        <ThemedText numberOfLines={1}>{inspectionRequest.createdDate.toString()}</ThemedText>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <ThemedText numberOfLines={1}>
+          {inspectionRequest.createdDate.toString()}
+        </ThemedText>
         {inspectionRequest.status === "Pending" && (
           <View style={{ flexDirection: "row", gap: 8 }}>
             <Pressable style={style.cardActionButton}>
@@ -131,7 +187,7 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
             {inspectionRequest.status}
           </ThemedText>
         )}
-      </View>
+      </View> */}
     </ThemedView>
   );
 };
@@ -140,19 +196,60 @@ export default memo(RequestCard);
 
 const style = StyleSheet.create({
   card: {
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 8,
+    padding: 12,
+    marginHorizontal: 8,
+    marginVertical: 8,
+    borderRadius: 8,
+    elevation: 4,
   },
+  cardHeader: {},
   title: {
+    fontSize: 18,
     fontWeight: 700,
   },
-  cardHeader: {
+  cardContent: {
+    paddingTop: 8,
+    paddingBottom: 16,
+    borderBottomWidth: 0.5,
+  },
+  quantityContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
+    gap: 4,
+  },
+  quantityBox: {
+    flexDirection: "row",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 50,
+    elevation: 3,
+    gap: 4,
+    backgroundColor: "#fff",
+    // borderWidth: 1,
+  },
+  quantityBoxLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  quantityNumber: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  cardFooter: {
+    paddingTop: 8,
+  },
+  createdLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  createdText: {
+    fontSize: 16,
+  },
+  inspectButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: "#55b5f1",
+    elevation: 10,
   },
   cardActionContainer: {
     flexDirection: "row",

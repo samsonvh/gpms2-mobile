@@ -1,5 +1,6 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import AntDesign from '@expo/vector-icons/AntDesign';
 import {
   BarcodeScanningResult,
   CameraView,
@@ -12,7 +13,7 @@ import {
   useLocalSearchParams,
 } from "expo-router";
 import React, { memo, useCallback, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const CameraScreen = () => {
   const { id } = useLocalSearchParams();
@@ -48,13 +49,16 @@ const CameraScreen = () => {
   };
 
   return (
-    <ThemedView style={{ flex: 1 }}>
-      <Pressable onPress={() => router.back()}>
-        <ThemedText>Back</ThemedText>
+    <ThemedView style={style.screen}>
+      <Pressable style={style.backButton} onPress={() => router.back()}>
+        <AntDesign name="back" size={24} color="black" />
+        <ThemedText style={{ fontSize: 20, fontWeight: "700" }}>
+          Back
+        </ThemedText>
       </Pressable>
       {isFocused && (
         <CameraView
-          style={{ flex: 1 }}
+          style={style.camera}
           facing="back"
           mode="picture"
           barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
@@ -64,5 +68,30 @@ const CameraScreen = () => {
     </ThemedView>
   );
 };
+
+const style = StyleSheet.create({
+  screen: {
+    flex: 1,
+    position: "relative",
+  },
+  camera: {
+    flex: 1,
+  },
+  backButton: {
+    position: "absolute",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    top: 40,
+    left: 20,
+    paddingLeft: 8,
+    paddingRight: 12,
+    paddingVertical: 8,
+    borderRadius: 50,
+    backgroundColor: "#fff",
+    elevation: 10,
+    zIndex: 1,
+  },
+});
 
 export default memo(CameraScreen);

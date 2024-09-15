@@ -70,7 +70,6 @@ const Index = () => {
       }
     )
       .then((request) => {
-        console.log(request);
         return request.json();
       })
       .then((data) => {
@@ -86,7 +85,7 @@ const Index = () => {
   }, []);
 
   return (
-    <ThemedView style={{ height: "100%" }}>
+    <ThemedView style={style.screen}>
       <Header />
       <View style={style.searchBarContainer}>
         <TextInput
@@ -114,6 +113,11 @@ const Index = () => {
 export default Index;
 
 const style = StyleSheet.create({
+  screen: {
+    height: "100%",
+    paddingTop: 40,
+    paddingBottom: 60,
+  },
   header: {},
   list: {
     padding: 12,

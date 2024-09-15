@@ -28,6 +28,7 @@ import { ProductionStepListingItem } from "@/data/types/ProductionStep";
 import { QualityStandardListingItem } from "@/data/types/QualityStandard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { InspectionRequestDetails } from "@/data/types/inspection-request";
+import { Collapsible } from "@/components/Collapsible";
 
 const ResultInputScreen = () => {
   const { id } = useLocalSearchParams();
@@ -44,8 +45,11 @@ const ResultInputScreen = () => {
     ProductionStepListingItem[]
   >([]);
 
-  const [result, setResult] = useState<InspectionResultInput>();
   const [faultyProducts, setFaultyProducts] = useState<FaultyProduct[]>([]);
+  const [result, setResult] = useState<InspectionResultInput>({
+    faultyProducts,
+    inspectedQuantity: request?.requiredQuantity ?? 1,
+  });
 
   const [newProduct, setNewProduct] = useState<FaultyProduct>();
   const [productFaults, setProductFaults] = useState<ProductFault[]>([]);
@@ -54,9 +58,9 @@ const ResultInputScreen = () => {
   const openForm = async (formType: string) => {
     switch (formType) {
       case "fault":
+        setNewFault({ productionStepId: "", qualityStandardId: "" });
         setProductFormOpened(false);
         setFaultFormOpened(true);
-        setNewFault({ productionStepId: "", qualityStandardId: "" });
         break;
       case "product":
         setProductFormOpened(true);
@@ -75,6 +79,9 @@ const ResultInputScreen = () => {
         setProductFormOpened(false);
         setNewProduct(undefined);
         break;
+      case "result":
+        router.replace("/");
+        break;
     }
   };
   const doneForm = async (formType: string) => {
@@ -82,7 +89,6 @@ const ResultInputScreen = () => {
       case "fault":
         setProductFaults([...productFaults, newFault!]);
         setNewFault(undefined);
-        setNewProduct({ ...newProduct!, productFaults });
         setFaultFormOpened(false);
         setProductFormOpened(true);
         break;
@@ -133,7 +139,14 @@ const ResultInputScreen = () => {
       }
     )
       .then((response) => response.json())
-      .then((data) => setQualityStandards(data.data));
+      .then((data) => {
+        console.log(data.data.length);
+        setNewFault({
+          ...newFault!,
+          qualityStandardId: data.data.length > 0 ? data.data[0].id : "",
+        });
+        setQualityStandards(data.data);
+      });
   };
 
   const getProductionSteps = async () => {
@@ -179,27 +192,98 @@ const ResultInputScreen = () => {
       }
     )
       .then((response) => response.json())
-      .then((data) => setProductionSteps(data.data));
+      .then((data) => {
+        setProductionSteps(data.data);
+        setNewFault({
+          ...newFault!,
+          productionStepId: data.data.length > 0 ? data.data[0].id : "",
+        });
+      });
+  };
+
+  const submitResult = async () => {
+    console.log(JSON.stringify(result));
+    const a = await AsyncStorage.getItem("token");
+
+    await fetch(
+      `${process.env.EXPO_PUBLIC_API_SERVER}/api/v1/inspection-requests/${id}/results`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + a,
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(result),
+      }
+    )
+      .then((response) => response.json())
+      .then(
+        (data) => (data === "Failed" || data === "Passed") && router.back()
+      );
   };
 
   useEffect(() => {
     getRequest();
   }, []);
 
+  const defaultFault = async () => {
+    await getQualityStandard();
+  };
+
   useEffect(() => {
     if (faultFormOpened && request) {
-      getQualityStandard();
-      getProductionSteps();
+      defaultFault();
     }
   }, [faultFormOpened]);
+
+  useEffect(() => {
+    console.log(newFault);
+  }, [newFault]);
+
+  useEffect(() => {
+    if (qualityStandards.length > 0) {
+      getProductionSteps();
+    }
+  }, [qualityStandards]);
+
+  useEffect(() => {
+    setResult({ ...result, faultyProducts });
+  }, [faultyProducts]);
+
+  useEffect(() => {
+    setNewProduct({ ...newProduct!, productFaults });
+  }, [productFaults]);
 
   return (
     <ThemedView style={{ width: "100%", height: "100%" }}>
       <ThemedView style={style.resultForm}>
         <ThemedText style={style.title}>{request?.name}</ThemedText>
         <View>
+          <ThemedText style={style.label}>Inspected quantity:</ThemedText>
+          <TextInput
+            style={style.input}
+            value={result.inspectedQuantity.toString()}
+            onChangeText={(value) => {
+              if (isNaN(parseInt(value))) {
+                setResult({ ...result, inspectedQuantity: 1 });
+              } else {
+                setResult({ ...result, inspectedQuantity: parseInt(value) });
+              }
+            }}
+            keyboardType="number-pad"
+          />
+        </View>
+        <View>
           <ThemedText style={style.label}>Description:</ThemedText>
-          <TextInput multiline numberOfLines={4} style={style.input} />
+          <TextInput
+            multiline
+            numberOfLines={4}
+            onChangeText={(value) =>
+              setResult({ ...result, description: value })
+            }
+            style={style.input}
+          />
         </View>
         <View
           style={{
@@ -218,11 +302,51 @@ const ResultInputScreen = () => {
             <Text>Add +</Text>
           </Pressable>
         </View>
-        <ScrollView style={{ flexGrow: 1 }}>
-          {faultyProducts.map((product, index) => (
-            <View key={index}>{product.ordinalNumberInSeries}</View>
-          ))}
-        </ScrollView>
+        <View style={{ height: 200 }}>
+          <ScrollView>
+            {faultyProducts.map((product, index) => (
+              <View
+                key={index}
+                style={{ borderWidth: 1, padding: 12, borderRadius: 4 }}
+              >
+                <ThemedText>
+                  Ordinal number in series: {product.ordinalNumberInSeries}
+                </ThemedText>
+                <ThemedText>Description: {product.description}</ThemedText>
+                <Collapsible title="Faults">
+                  {product.productFaults.map((fault) => (
+                    <ThemedView key={index}>
+                      <ThemedText>Description: {fault.description}</ThemedText>
+                      <ThemedText>
+                        Violated quality standard:{" "}
+                        {/* {qualityStandards.length > 0 &&
+                          qualityStandards.filter(
+                            (standard) => standard.id == fault.qualityStandardId
+                          )[0].name} */}
+                      </ThemedText>
+                      <ThemedText>
+                        Fault at production step:{" "}
+                        {
+                          productionSteps.filter(
+                            (step) => step.id == fault.productionStepId
+                          )[0].name
+                        }
+                      </ThemedText>
+                    </ThemedView>
+                  ))}
+                </Collapsible>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Pressable style={style.button} onPress={async () => router.back()}>
+            <Text>Cancel</Text>
+          </Pressable>
+          <Pressable style={style.button} onPress={submitResult}>
+            <Text>Done</Text>
+          </Pressable>
+        </View>
       </ThemedView>
       {productFormOpened && (
         <ThemedView
@@ -246,11 +370,35 @@ const ResultInputScreen = () => {
                 <ThemedText style={style.label}>
                   Ordinal number in series:
                 </ThemedText>
-                <TextInput style={style.input} keyboardType="number-pad" />
+                <TextInput
+                  style={style.input}
+                  value={newProduct?.ordinalNumberInSeries.toString()}
+                  onChangeText={(value) => {
+                    if (isNaN(parseInt(value))) {
+                      setNewProduct({
+                        ...newProduct!,
+                        ordinalNumberInSeries: 1,
+                      });
+                    } else {
+                      setNewProduct({
+                        ...newProduct!,
+                        ordinalNumberInSeries: parseInt(value),
+                      });
+                    }
+                  }}
+                  keyboardType="number-pad"
+                />
               </View>
               <View>
                 <ThemedText style={style.label}>Description:</ThemedText>
-                <TextInput multiline numberOfLines={4} style={style.input} />
+                <TextInput
+                  multiline
+                  numberOfLines={4}
+                  onChangeText={(value) =>
+                    setNewProduct({ ...newProduct!, description: value })
+                  }
+                  style={style.input}
+                />
               </View>
               <View
                 style={{
@@ -310,7 +458,15 @@ const ResultInputScreen = () => {
                 <ThemedText style={style.label}>
                   Violated quality standard:
                 </ThemedText>
-                <Picker style={style.input}>
+                <Picker
+                  style={style.input}
+                  onValueChange={(value) =>
+                    setNewFault({
+                      ...newFault!,
+                      qualityStandardId: value as string,
+                    })
+                  }
+                >
                   {qualityStandards.map((standard) => (
                     <Picker.Item
                       key={standard.id}
@@ -324,7 +480,15 @@ const ResultInputScreen = () => {
                 <ThemedText style={style.label}>
                   Fault at production step:
                 </ThemedText>
-                <Picker style={style.input}>
+                <Picker
+                  style={style.input}
+                  onValueChange={(value) =>
+                    setNewFault({
+                      ...newFault!,
+                      productionStepId: value as string,
+                    })
+                  }
+                >
                   {productionSteps.map((step) => (
                     <Picker.Item
                       key={step.id}
@@ -336,7 +500,14 @@ const ResultInputScreen = () => {
               </View>
               <View>
                 <ThemedText style={style.label}>Description:</ThemedText>
-                <TextInput multiline numberOfLines={4} style={style.input} />
+                <TextInput
+                  multiline
+                  numberOfLines={4}
+                  onChangeText={(value) =>
+                    setNewFault({ ...newFault!, description: value })
+                  }
+                  style={style.input}
+                />
               </View>
             </View>
             <View

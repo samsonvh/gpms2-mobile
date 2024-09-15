@@ -53,7 +53,7 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
   };
 
   return (
-    <ThemedView>
+    <ThemedView style={style.card}>
       <View>
         <ThemedText numberOfLines={1} style={style.title}>
           {inspectionRequest.name}
@@ -93,29 +93,43 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
           </View>
         </View>
       </View>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <ThemedText>{inspectionRequest.createdDate.toString()}</ThemedText>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" , alignItems: "center"}}>
+        <ThemedText numberOfLines={1}>{inspectionRequest.createdDate.toString()}</ThemedText>
         {inspectionRequest.status === "Pending" && (
           <View style={{ flexDirection: "row", gap: 8 }}>
-            <Pressable>
-              <ThemedText>Decline</ThemedText>
+            <Pressable style={style.cardActionButton}>
+              <ThemedText style={style.cardActionButtonText}>
+                Decline
+              </ThemedText>
             </Pressable>
-            <Pressable>
-              <ThemedText>Approve</ThemedText>
+            <Pressable style={style.cardActionButton}>
+              <ThemedText style={style.cardActionButtonText}>
+                Approve
+              </ThemedText>
             </Pressable>
           </View>
         )}
-        {inspectionRequest.status === "Approved" && (
-          <Pressable onPress={() => {router.push("/camera/" + inspectionRequest.id as Href)}}>
-            <ThemedText>Inspect</ThemedText>
+        {(inspectionRequest.status === "Approved" ||
+          inspectionRequest.status === "InProgress") && (
+          <Pressable
+            style={style.cardActionButton}
+            onPress={() => {
+              router.push(("/camera/" + inspectionRequest.id) as Href);
+            }}
+          >
+            <ThemedText style={style.cardActionButtonText}>Inspect</ThemedText>
           </Pressable>
         )}
-        {inspectionRequest.status === "Declined" ||
-          (inspectionRequest.status === "Failed" && (
-            <ThemedText>{inspectionRequest.status}</ThemedText>
-          ))}
+        {(inspectionRequest.status === "Declined" ||
+          inspectionRequest.status === "Failed") && (
+          <ThemedText style={style.statusRedBadge}>
+            {inspectionRequest.status}
+          </ThemedText>
+        )}
         {inspectionRequest.status === "Passed" && (
-          <ThemedText>{inspectionRequest.status}</ThemedText>
+          <ThemedText style={style.statusGreenBadge}>
+            {inspectionRequest.status}
+          </ThemedText>
         )}
       </View>
     </ThemedView>
@@ -125,6 +139,13 @@ const RequestCard = ({ inspectionRequest }: cardProps) => {
 export default memo(RequestCard);
 
 const style = StyleSheet.create({
+  card: {
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+  },
   title: {
     fontWeight: 700,
   },
@@ -139,9 +160,31 @@ const style = StyleSheet.create({
     gap: 12,
   },
   cardActionButton: {
-    backgroundColor: "#ccc",
+    backgroundColor: "#1e90ff",
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 4,
+    borderRadius: 8,
+  },
+  cardActionButtonText: {
+    color: "#fff",
+    fontWeight: 600,
+  },
+  statusRedBadge: {
+    borderWidth: 1,
+    paddingVertical: 2,
+    paddingHorizontal: 12,
+    borderRadius: 50,
+    backgroundColor: "#eb102f",
+    color: "#fff",
+    fontWeight: 600,
+  },
+  statusGreenBadge: {
+    borderWidth: 1,
+    paddingVertical: 2,
+    paddingHorizontal: 12,
+    borderRadius: 50,
+    backgroundColor: "#008000",
+    color: "#fff",
+    fontWeight: 600,
   },
 });

@@ -88,5 +88,5 @@ export type InspectionRequestListingItem = {
   createdDate: Date;
   creator: ExtractedInformationModel;
   productionSeries: ExtractedInformationModel;
-  status: "Pending" | "Approved" | "Declined" | "Failed" | "Passed";
+  status: "Pending" | "Approved" | "Declined" | "Failed" | "Passed" | "InProgress";
 };

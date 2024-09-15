@@ -8,6 +8,7 @@ import {
   ListRenderItem,
   ListRenderItemInfo,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -16,7 +17,10 @@ import {
 import inspectionRequests from "@/data/mock-data/inspection-requests.json";
 import Header from "@/components/common/layout/header/Header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { InspectionRequestFilterModel, InspectionRequestListingItem } from "@/data/types/inspection-request";
+import {
+  InspectionRequestFilterModel,
+  InspectionRequestListingItem,
+} from "@/data/types/inspection-request";
 
 const Index = () => {
   const [token, setToken] = useState<string>();
@@ -51,11 +55,14 @@ const Index = () => {
       status: "",
     };
 
+    const a = await AsyncStorage.getItem("token");
+
     await fetch(
       `${process.env.EXPO_PUBLIC_API_SERVER}/api/v1/inspection-requests/filter`,
       {
         method: "POST",
         headers: {
+          "Authorization": "Bearer " + a,
           accept: "application/json",
           "content-type": "application/json",
         },
@@ -79,7 +86,7 @@ const Index = () => {
   }, []);
 
   return (
-    <ThemedView style={{height: "100%"}}>
+    <ThemedView style={{ height: "100%" }}>
       <Header />
       <View style={style.searchBarContainer}>
         <TextInput
@@ -87,14 +94,12 @@ const Index = () => {
           placeholder="Search by name or series code"
         />
       </View>
-      <View style={style.statusFilterContainer}>
-        <Pressable style={style.statusFilterButton}>
-          <Text>All</Text>
-        </Pressable>
-      </View>
       <View style={style.list}>
         <FlatList
-          style={{maxHeight: "30%"}}
+          ItemSeparatorComponent={() => (
+            <ThemedView style={{ padding: 8 }}></ThemedView>
+          )}
+          style={{ maxHeight: 400 }}
           initialNumToRender={5}
           maxToRenderPerBatch={5}
           data={requests}
@@ -113,7 +118,6 @@ const style = StyleSheet.create({
   list: {
     padding: 12,
     flexGrow: 1,
-    
   },
   searchBarContainer: {
     padding: 12,
@@ -124,11 +128,13 @@ const style = StyleSheet.create({
     borderRadius: 4,
   },
   statusFilterContainer: {
+    width: "100%",
     padding: 8,
   },
   statusFilterButton: {
     borderWidth: 1,
-    width: "15%",
+    width: 50,
+    height: 50,
     aspectRatio: 1,
   },
 });

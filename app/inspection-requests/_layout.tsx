@@ -1,10 +1,12 @@
 import { Stack, Tabs } from "expo-router";
 import React from "react";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import TabBar from "@/components/common/layout/tab-bar/TabBar";
 
 const RequestLayout = () => {
   return (
     <Tabs
+      tabBar={props => <TabBar {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {

@@ -85,7 +85,7 @@ const Index = () => {
   const onRefresh = async () => {
     setIsRefreshing(true);
     await getRequests().then(() => setIsRefreshing(false));
-  }
+  };
 
   useEffect(() => {
     getToken();
@@ -111,6 +111,18 @@ const Index = () => {
             windowSize={5}
             onRefresh={onRefresh}
             refreshing={isRefreshing}
+            ListEmptyComponent={
+              <Text
+                style={{
+                  fontSize: 20,
+                  alignSelf: "center",
+                  marginTop: 20,
+                  fontStyle: "italic",
+                }}
+              >
+                No request at the moment.
+              </Text>
+            }
           />
         </View>
       </View>
@@ -124,8 +136,9 @@ const style = StyleSheet.create({
   screen: {
     height: "100%",
     paddingTop: 40,
-    paddingBottom: 20,
+    paddingBottom: 80,
     gap: 12,
+    backgroundColor: "#f5fffa"
   },
   title: {
     fontSize: 20,

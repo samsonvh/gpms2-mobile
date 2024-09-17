@@ -119,6 +119,7 @@ const ResultInputScreen = () => {
   };
 
   const getQualityStandard = async () => {
+    const a = await AsyncStorage.getItem("token");
     const filter = {
       orderBy: "Name",
       isAscending: true,
@@ -133,6 +134,7 @@ const ResultInputScreen = () => {
       {
         method: "POST",
         headers: {
+          Authorization: "Bearer " + a,
           "content-type": "application/json",
         },
         body: JSON.stringify(filter),
@@ -150,6 +152,7 @@ const ResultInputScreen = () => {
   };
 
   const getProductionSteps = async () => {
+    const a = await AsyncStorage.getItem("token");
     const processFilter = {
       orderBy: "Name",
       isAscending: true,
@@ -165,6 +168,7 @@ const ResultInputScreen = () => {
       {
         method: "POST",
         headers: {
+          Authorization: "Bearer " + a,
           "content-type": "application/json",
         },
         body: JSON.stringify(processFilter),
@@ -186,6 +190,7 @@ const ResultInputScreen = () => {
       {
         method: "POST",
         headers: {
+          Authorization: "Bearer " + a,
           "content-type": "application/json",
         },
         body: JSON.stringify(stepFilter),
@@ -227,6 +232,12 @@ const ResultInputScreen = () => {
     getRequest();
   }, []);
 
+  useEffect(() => {
+    if (request) {
+      setResult({ ...result, inspectedQuantity: request.requiredQuantity });
+    }
+  }, [request]);
+
   const defaultFault = async () => {
     await getQualityStandard();
   };
@@ -256,7 +267,7 @@ const ResultInputScreen = () => {
   }, [productFaults]);
 
   return (
-    <ThemedView style={{ width: "100%", height: "100%" }}>
+    <ThemedView style={style.screen}>
       <ThemedView style={style.resultForm}>
         <ThemedText style={style.title}>{request?.name}</ThemedText>
         <View>
@@ -285,66 +296,37 @@ const ResultInputScreen = () => {
             style={style.input}
           />
         </View>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <ThemedText style={style.label}>
-            Faulty products: {faultyProducts.length}
-          </ThemedText>
-          <Pressable
-            style={style.button}
-            onPress={async () => await openForm("product")}
-          >
-            <Text>Add +</Text>
-          </Pressable>
-        </View>
-        <View style={{ height: 200 }}>
-          <ScrollView>
-            {faultyProducts.map((product, index) => (
-              <View
-                key={index}
-                style={{ borderWidth: 1, padding: 12, borderRadius: 4 }}
-              >
-                <ThemedText>
-                  Ordinal number in series: {product.ordinalNumberInSeries}
-                </ThemedText>
-                <ThemedText>Description: {product.description}</ThemedText>
-                <Collapsible title="Faults">
-                  {product.productFaults.map((fault) => (
-                    <ThemedView key={index}>
-                      <ThemedText>Description: {fault.description}</ThemedText>
-                      <ThemedText>
-                        Violated quality standard:{" "}
-                        {/* {qualityStandards.length > 0 &&
-                          qualityStandards.filter(
-                            (standard) => standard.id == fault.qualityStandardId
-                          )[0].name} */}
-                      </ThemedText>
-                      <ThemedText>
-                        Fault at production step:{" "}
-                        {
-                          productionSteps.filter(
-                            (step) => step.id == fault.productionStepId
-                          )[0].name
-                        }
-                      </ThemedText>
-                    </ThemedView>
-                  ))}
-                </Collapsible>
-              </View>
-            ))}
-          </ScrollView>
+        <View style={{ flexGrow: 1, gap: 8 }}>
+          <View style={style.labelWithActionSection}>
+            <ThemedText style={style.label}>
+              Faulty products: {faultyProducts.length}
+            </ThemedText>
+            <Pressable
+              style={style.button}
+              onPress={async () => await openForm("product")}
+            >
+              <Text style={style.buttonText}>Add +</Text>
+            </Pressable>
+          </View>
+          <View style={style.scrollContainer}>
+            <ScrollView style={style.scrollView}>
+              {faultyProducts.map((product, index) => (
+                <FaultyProductCard
+                  key={index}
+                  qualityStandards={qualityStandards}
+                  productionSteps={productionSteps}
+                  faultyProduct={product}
+                />
+              ))}
+            </ScrollView>
+          </View>
         </View>
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <Pressable style={style.button} onPress={async () => router.back()}>
-            <Text>Cancel</Text>
+            <Text style={style.buttonText}>Cancel</Text>
           </Pressable>
           <Pressable style={style.button} onPress={submitResult}>
-            <Text>Done</Text>
+            <Text style={style.buttonText}>Done</Text>
           </Pressable>
         </View>
       </ThemedView>
@@ -362,51 +344,45 @@ const ResultInputScreen = () => {
           }}
         >
           <ThemedView style={style.productForm}>
-            <View style={{ gap: 8 }}>
-              <ThemedText style={style.title}>
-                Adding new faulty product
+            <ThemedText style={style.title}>
+              Adding new faulty product
+            </ThemedText>
+            <View>
+              <ThemedText style={style.label}>
+                Ordinal number in series:
               </ThemedText>
-              <View>
-                <ThemedText style={style.label}>
-                  Ordinal number in series:
-                </ThemedText>
-                <TextInput
-                  style={style.input}
-                  value={newProduct?.ordinalNumberInSeries.toString()}
-                  onChangeText={(value) => {
-                    if (isNaN(parseInt(value))) {
-                      setNewProduct({
-                        ...newProduct!,
-                        ordinalNumberInSeries: 1,
-                      });
-                    } else {
-                      setNewProduct({
-                        ...newProduct!,
-                        ordinalNumberInSeries: parseInt(value),
-                      });
-                    }
-                  }}
-                  keyboardType="number-pad"
-                />
-              </View>
-              <View>
-                <ThemedText style={style.label}>Description:</ThemedText>
-                <TextInput
-                  multiline
-                  numberOfLines={4}
-                  onChangeText={(value) =>
-                    setNewProduct({ ...newProduct!, description: value })
+              <TextInput
+                style={style.input}
+                value={newProduct?.ordinalNumberInSeries.toString()}
+                onChangeText={(value) => {
+                  if (isNaN(parseInt(value))) {
+                    setNewProduct({
+                      ...newProduct!,
+                      ordinalNumberInSeries: 1,
+                    });
+                  } else {
+                    setNewProduct({
+                      ...newProduct!,
+                      ordinalNumberInSeries: parseInt(value),
+                    });
                   }
-                  style={style.input}
-                />
-              </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
                 }}
-              >
+                keyboardType="number-pad"
+              />
+            </View>
+            <View>
+              <ThemedText style={style.label}>Description:</ThemedText>
+              <TextInput
+                multiline
+                numberOfLines={4}
+                onChangeText={(value) =>
+                  setNewProduct({ ...newProduct!, description: value })
+                }
+                style={style.input}
+              />
+            </View>
+            <View style={{ flexGrow: 1, gap: 8 }}>
+              <View style={style.labelWithActionSection}>
                 <ThemedText style={style.label}>
                   Product faults: {productFaults.length}
                 </ThemedText>
@@ -414,10 +390,12 @@ const ResultInputScreen = () => {
                   style={style.button}
                   onPress={async () => await openForm("fault")}
                 >
-                  <Text>Add +</Text>
+                  <Text style={style.buttonText}>Add +</Text>
                 </Pressable>
               </View>
-              <ScrollView></ScrollView>
+              <View style={style.scrollContainer}>
+                <ScrollView style={style.scrollView}></ScrollView>
+              </View>
             </View>
             <View
               style={{ flexDirection: "row", justifyContent: "space-between" }}
@@ -426,13 +404,13 @@ const ResultInputScreen = () => {
                 style={style.button}
                 onPress={async () => await cancelForm("product")}
               >
-                <Text>Cancel</Text>
+                <Text style={style.buttonText}>Cancel</Text>
               </Pressable>
               <Pressable
                 style={style.button}
                 onPress={async () => await doneForm("product")}
               >
-                <Text>Done</Text>
+                <Text style={style.buttonText}>Done</Text>
               </Pressable>
             </View>
           </ThemedView>
@@ -447,68 +425,66 @@ const ResultInputScreen = () => {
             bottom: 0,
             right: 0,
             paddingHorizontal: 20,
-            paddingVertical: 40,
+            justifyContent: "center",
             backgroundColor: "rgba(0,0,0,0.25)",
           }}
         >
-          <ThemedView style={style.productForm}>
-            <View style={{ gap: 8 }}>
-              <ThemedText style={style.title}>Adding new fault</ThemedText>
-              <View>
-                <ThemedText style={style.label}>
-                  Violated quality standard:
-                </ThemedText>
-                <Picker
-                  style={style.input}
-                  onValueChange={(value) =>
-                    setNewFault({
-                      ...newFault!,
-                      qualityStandardId: value as string,
-                    })
-                  }
-                >
-                  {qualityStandards.map((standard) => (
-                    <Picker.Item
-                      key={standard.id}
-                      label={standard.name}
-                      value={standard.id}
-                    />
-                  ))}
-                </Picker>
-              </View>
-              <View>
-                <ThemedText style={style.label}>
-                  Fault at production step:
-                </ThemedText>
-                <Picker
-                  style={style.input}
-                  onValueChange={(value) =>
-                    setNewFault({
-                      ...newFault!,
-                      productionStepId: value as string,
-                    })
-                  }
-                >
-                  {productionSteps.map((step) => (
-                    <Picker.Item
-                      key={step.id}
-                      label={step.name}
-                      value={step.id}
-                    />
-                  ))}
-                </Picker>
-              </View>
-              <View>
-                <ThemedText style={style.label}>Description:</ThemedText>
-                <TextInput
-                  multiline
-                  numberOfLines={4}
-                  onChangeText={(value) =>
-                    setNewFault({ ...newFault!, description: value })
-                  }
-                  style={style.input}
-                />
-              </View>
+          <ThemedView style={style.faultForm}>
+            <ThemedText style={style.title}>Adding new fault</ThemedText>
+            <View>
+              <ThemedText style={style.label}>
+                Violated quality standard:
+              </ThemedText>
+              <Picker
+                style={style.input}
+                onValueChange={(value) =>
+                  setNewFault({
+                    ...newFault!,
+                    qualityStandardId: value as string,
+                  })
+                }
+              >
+                {qualityStandards.map((standard) => (
+                  <Picker.Item
+                    key={standard.id}
+                    label={standard.name}
+                    value={standard.id}
+                  />
+                ))}
+              </Picker>
+            </View>
+            <View>
+              <ThemedText style={style.label}>
+                Fault at production step:
+              </ThemedText>
+              <Picker
+                style={style.input}
+                onValueChange={(value) =>
+                  setNewFault({
+                    ...newFault!,
+                    productionStepId: value as string,
+                  })
+                }
+              >
+                {productionSteps.map((step) => (
+                  <Picker.Item
+                    key={step.id}
+                    label={step.name}
+                    value={step.id}
+                  />
+                ))}
+              </Picker>
+            </View>
+            <View>
+              <ThemedText style={style.label}>Description:</ThemedText>
+              <TextInput
+                multiline
+                numberOfLines={4}
+                onChangeText={(value) =>
+                  setNewFault({ ...newFault!, description: value })
+                }
+                style={style.input}
+              />
             </View>
             <View
               style={{ flexDirection: "row", justifyContent: "space-between" }}
@@ -534,28 +510,67 @@ const ResultInputScreen = () => {
 };
 
 const style = StyleSheet.create({
-  resultForm: { padding: 12, gap: 8 },
-  productForm: {
+  screen: {
     height: "100%",
-    padding: 16,
-    justifyContent: "space-between",
+    paddingTop: 40,
+    paddingBottom: 40,
+    gap: 12,
+  },
+  resultForm: {
+    flex: 1,
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  productForm: {
+    flex: 1,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    gap: 12,
     borderRadius: 8,
   },
-  faultForm: {},
-  title: { fontWeight: 700, fontSize: 20, paddingTop: 8, paddingBottom: 12 },
+  faultForm: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    gap: 12,
+    borderRadius: 8,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+  },
+  scrollView: {
+    borderRadius: 8,
+  },
+  labelWithActionSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  title: {
+    fontWeight: 700,
+    fontSize: 20,
+    paddingTop: 8,
+    paddingBottom: 12,
+  },
   label: {
+    fontSize: 18,
     fontWeight: 600,
   },
   input: {
-    marginTop: 4,
+    marginTop: 8,
     padding: 12,
     borderWidth: 1,
     borderRadius: 4,
   },
   button: {
-    padding: 8,
-    borderWidth: 1,
-    borderRadius: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    elevation: 4,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 

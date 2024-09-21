@@ -42,7 +42,7 @@ const CameraScreen = () => {
 
   const onBarcodeScanned = (item: BarcodeScanningResult) => {
     if (item.data === id) {
-      router.replace({ pathname: "/inspection-results/[id]", params: { id } });
+      router.replace({ pathname: "/inspection-results/new-form/[id]", params: { id } });
     } else {
       router.back();
     }
